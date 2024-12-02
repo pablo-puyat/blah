@@ -23,16 +23,23 @@ Log Monitor is a developer tool designed to enhance local log monitoring by prov
 
 #### 1. File Watcher Module
 
-The file watcher is responsible for monitoring log files and distributing new entries to the system.
-
 **Responsibilities:**
 
 - Monitor specified files for changes
-- Read new content efficiently
-- Parse log structure
+- Read new content
 - Distribute entries to processing pipeline
 
-#### 2. Storage Module
+#### 2. Display Module 
+
+**Responsibilities:**
+
+- Listen to log channel
+- Output entries to terminal
+- Provide TUI to navigate entries
+    - paging for individual entries
+    - collapse and entries
+
+#### 3. Storage Module
 
 SQLite-based storage system for log persistence and searching.
 
@@ -44,7 +51,7 @@ SQLite-based storage system for log persistence and searching.
 - Handle historical queries
 - Implement log retention policies
 
-#### 3. Summarizer Module
+#### 4. Summarizer Module
 
 Processes and aggregates log data for analysis.
 
@@ -55,7 +62,7 @@ Processes and aggregates log data for analysis.
 - Track error patterns
 - Provide monitoring metrics
 
-#### 4. WebSocket Server
+#### 5. WebSocket Server
 
 Handles real-time communication with clients.
 
@@ -75,6 +82,8 @@ Log Sources
        │
        ▼
     Channel
+       │
+       ├─────► Display
        │
        ├─────► SQLite Writer
        │
