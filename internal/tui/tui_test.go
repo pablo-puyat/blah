@@ -1,52 +1,41 @@
 package tui
 
 import (
-	"fmt"
+	"bytes"
+	"strings"
+	tea "github.com/charmbracelet/bubbletea"
 	"testing"
 	"time"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
-func TestModelHandlesLogMessage(t *testing.T) {
-	m := initialModel()
-	p := tea.NewProgram(m, tea.WithoutRenderer())
-	
+func TestLogMessagesAppearInOutput(t *testing.T) {
+	var buf bytes.Buffer
+	// Initialize program with test renderer
+	ch := make(chan string)
+	defer close(ch)
+	p := tea.NewProgram(NewModel(ch), tea.WithOutput(&buf))
+
+	// Run program in background
 	go func() {
 		if _, err := p.Run(); err != nil {
-			t.Errorf("Failed to run program: %v", err)
+			t.Errorf("unexpected error: %v", err)
 		}
 	}()
 
-	// Wait for program to initialize
+	// Wait for initialization
 	time.Sleep(100 * time.Millisecond)
 
-	// Send a log message through the channel, as it would happen in real usage
-	m.logChan <- "Test log entry 123"
+	// Send log message via channel
+	expectedLog := "test log message"
+	ch <- expectedLog
 
+	// Wait for processing
 	time.Sleep(100 * time.Millisecond)
 
-	// Test quit functionality
-	p.Send(tea.KeyMsg{Type: tea.KeyCtrlC})
+    if !strings.Contains(buf.String(), expectedLog) {
+        t.Error("output should contain 'expected'")
+    }  
 	time.Sleep(100 * time.Millisecond)
-	
-	p.Kill()
-}
-
-func TestModelHandlesError(t *testing.T) {
-	m := initialModel()
-	p := tea.NewProgram(m, tea.WithoutRenderer())
-
-	go func() {
-		if _, err := p.Run(); err != nil {
-			t.Errorf("Failed to run program: %v", err)
-		}
-	}()
-
-	time.Sleep(100 * time.Millisecond)
-
-	p.Send(errMsg(fmt.Errorf("test error")))
-	time.Sleep(100 * time.Millisecond)
-	
-	p.Kill()
+	// Clean up
+	p.Quit()
 }

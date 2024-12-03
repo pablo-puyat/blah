@@ -25,7 +25,6 @@ func NewFileWatcher(filename string) (*FileWatcher, error) {
         file.Close()
         return nil, fmt.Errorf("error getting file size")
     }
-    print(info.Size()) 
     return &FileWatcher{
         filename:     filename,
         file:         file,
@@ -35,15 +34,14 @@ func NewFileWatcher(filename string) (*FileWatcher, error) {
 }
 
 func (fw *FileWatcher) Watch(done chan bool) error {
-    //defer fw.file.Close()
-    //defer close(fw.Lines)
+    defer fw.file.Close()
+    defer close(fw.Lines)
 
     for {
         info, err := fw.file.Stat()
         if err != nil {
             return fmt.Errorf("error getting file size: %v", err)
         }
-        print(info.Size())
         if info.Size() > fw.size {
             for {
                 select {
@@ -56,7 +54,7 @@ func (fw *FileWatcher) Watch(done chan bool) error {
                         fw.Lines <- scanner.Text()
                     }
                     fw.file.Close()
-                    time.Sleep(100 * time.Millisecond)
+                    time.Sleep(2 * time.Second)
                 }
             }
         }
