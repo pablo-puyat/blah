@@ -26,16 +26,24 @@ func TestLogMessagesAppearInOutput(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Send log message via channel
-	expectedLog := "test log message"
-	ch <- expectedLog
+	l := "test log message"
+	ch <- l
 
 	// Wait for processing
 	time.Sleep(100 * time.Millisecond)
 
-    if !strings.Contains(buf.String(), expectedLog) {
+    if !strings.Contains(buf.String(), l) {
         t.Error("output should contain 'expected'")
     }  
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
+
+	l2 := "test log message"
+	time.Sleep(500 * time.Millisecond)
+
+	ch <- l2
+    if !strings.Contains(buf.String(), l2) {
+        t.Error("output should contain 'expected'")
+    }  
 	// Clean up
 	p.Quit()
 }
