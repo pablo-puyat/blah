@@ -1,49 +1,79 @@
 package tui
 
 import (
-	"bytes"
-	"strings"
 	tea "github.com/charmbracelet/bubbletea"
+	"strings"
 	"testing"
 	"time"
+	"github.com/pablo-puyat/blahblah/internal/testutil"
 )
 
-func TestLogMessagesAppearInOutput(t *testing.T) {
-	var buf bytes.Buffer
-	// Initialize program with test renderer
-	ch := make(chan string)
-	defer close(ch)
-	p := tea.NewProgram(NewModel(ch), tea.WithOutput(&buf))
+// Test function
+func TestComponent(t *testing.T) {
+	// Initialize your model
+	m := NewModel()
 
-	// Run program in background
+	// Simulate initial window size message and type assert the result
+	updatedModel, _ := m.Update(tea.WindowSizeMsg{
+		Width:  80,
+		Height: 24,
+	})
+
+	// Type assert the interface back to our concrete type
+	m, ok := updatedModel.(Model)
+	if !ok {
+		t.Fatal("Could not type assert model")
+	}
+
+	if !m.ready {
+		t.Error("Component should be ready after receiving WindowSizeMsg")
+	}
+
+	if !strings.Contains(m.View(), "watching") {
+		t.Error("Viewport should contain watching")
+	}
+}
+
+func TestLogMessagesAppearInOutput(t *testing.T) {
+	m := NewModel()
+	p := tea.NewProgram(m)
+
 	go func() {
 		if _, err := p.Run(); err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
 	}()
 
-	// Wait for initialization
-	time.Sleep(100 * time.Millisecond)
+	updatedModel, _ := m.Update(tea.WindowSizeMsg{
+		Width:  80,
+		Height: 24,
+	})
+	m, ok := updatedModel.(Model)
+	if !ok {
+		t.Fatal("Could not type assert model")
+	}
 
-	// Send log message via channel
+	time.Sleep(300 * time.Millisecond)
+
+	if !m.ready {
+		t.Error("Component should be ready after receiving WindowSizeMsg")
+	}
+
+/*
+	updatedModel, _ = m.Update("sdfsdfsdf")
+	m, ok = updatedModel.(Model)
+	if !ok {
+		t.Fatal("Could not type assert model")
+	}
+*/
 	l := "test log message"
-	ch <- l
 
-	// Wait for processing
-	time.Sleep(100 * time.Millisecond)
-
-    if !strings.Contains(buf.String(), l) {
-        t.Error("output should contain 'expected'")
-    }  
-	time.Sleep(500 * time.Millisecond)
-
-	l2 := "test log message"
-	time.Sleep(500 * time.Millisecond)
-
-	ch <- l2
-    if !strings.Contains(buf.String(), l2) {
-        t.Error("output should contain 'expected'")
-    }  
-	// Clean up
+	p.Send(l)
+	time.Sleep(300 * time.Millisecond)
+	if !strings.Contains(m.View(), l) {
+		t.Error("output should contain " + l + "\n")
+		testutil.Logger.Printf("TUI test")
+	}
+	testutil.Logger.Printf("end")
 	p.Quit()
 }

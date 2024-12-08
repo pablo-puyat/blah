@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/pablo-puyat/blahblah/internal/filewatcher"
 	"github.com/pablo-puyat/blahblah/internal/tui"
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: blahblah <logfile>")
+		fmt.Println("Usage: blah <logfile>")
 		os.Exit(1)
 	}
 
@@ -22,25 +22,33 @@ func main() {
 		os.Exit(1)
 	}
 
-	
 	// Start watching file in background
 	done := make(chan bool)
+
+	// Create and start TUI
+	p := tea.NewProgram(tui.NewModel())
+
+	// Run the program
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error running program: %v\n", err)
+		os.Exit(1)
+	}
+
 	go func() {
 		if err := fw.Watch(done); err != nil {
 			fmt.Printf("Watcher error: %v\n", err)
 			os.Exit(1)
 		}
+		for {
+			msg, more := <-fw.Lines
+			if more {
+				p.Send(msg)
+			} else {
+				done <- true
+				return
+			}
+		}
 	}()
-
-	// Create and start TUI
-	program := tea.NewProgram(tui.NewModel(fw.Lines))
-
-	// Run the program
-	if _, err := program.Run(); err != nil {
-		fmt.Printf("Error running program: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Cleanup
+	<-done
 	close(done)
 }
