@@ -6,7 +6,7 @@ a log viewer to ease web development
 
 ## Overview
 
-Log Monitor is a developer tool designed to enhance local log monitoring by providing real-time log viewing, searching, and aggregation capabilities. It replaces traditional `tail -f` with a more developer-friendly approach while maintaining simplicity and avoiding external dependencies.
+blah - a tool intended to provide watching and searching of log files entries in log files.  It should function similar to `tail -f` but tailored for web developers.
 
 ## Core Features
 
@@ -29,7 +29,16 @@ Log Monitor is a developer tool designed to enhance local log monitoring by prov
 - Read new content
 - Distribute entries to processing pipeline
 
-#### 2. Display Module 
+#### 2. Summarizer Module
+
+Processes and aggregates log data for analysis.
+
+**Responsibilities:**
+
+- Parse different log formats
+- Generate summaries
+
+#### 3. Display Module
 
 **Responsibilities:**
 
@@ -39,7 +48,7 @@ Log Monitor is a developer tool designed to enhance local log monitoring by prov
     - paging for individual entries
     - collapse and entries
 
-#### 3. Storage Module
+#### 4. Storage Module
 
 SQLite-based storage system for log persistence and searching.
 
@@ -50,17 +59,6 @@ SQLite-based storage system for log persistence and searching.
 - Maintain search indexes
 - Handle historical queries
 - Implement log retention policies
-
-#### 4. Summarizer Module
-
-Processes and aggregates log data for analysis.
-
-**Responsibilities:**
-
-- Calculate real-time statistics
-- Generate time-based summaries
-- Track error patterns
-- Provide monitoring metrics
 
 #### 5. WebSocket Server
 
@@ -130,6 +128,7 @@ The system must handle:
 
 - File watching implementation
 - Basic stdout output
+- Summarize entries
 
 ### Phase 2: Storage Layer
 
