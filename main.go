@@ -23,41 +23,34 @@ func main() {
 	}
 
 	done := make(chan bool)
-	lines := make(chan string)
+	lines := make(chan string, 50)
 
 	p := tea.NewProgram(tui.New(), tea.WithAltScreen())
 	f, err := tea.LogToFile("debug.log", "debug")
 	if err != nil {
-		log.Fatal("Unable to open log file", err)
+		log.Printf("Unable to open log file: %v", err)
+		os.Exit(1)
 	}
 	defer f.Close()
-	log.Print("About to launch a thousand ships")
+
+	if err := fw.Watch(lines); err != nil {
+		log.Printf("Unable to start watcher: %v", err)
+		os.Exit(1)
+	}
 	go func() {
 		if _, err := p.Run(); err != nil {
-			fmt.Printf("Error running program: %v\n", err)
+			log.Printf("Error running program: %v", err)
 			os.Exit(1)
 		}
 	}()
 
 	go func() {
-		log.Print("Watch start")
-		if err := fw.Watch(lines); err != nil {
-			fmt.Printf("Watcher error: %v\n", err)
-			os.Exit(1)
-		}
-		log.Print("Watch end")
-	}()
-
-	go func() {
-		log.Print("Selector started")
 		for {
 			l, more := <-lines
 			if more {
-				log.Print("Received job", l)
 				p.Send(l)
 			} else {
-				log.Print("No more logs")
-				done<- true
+				done <- true
 				return
 			}
 		}
@@ -65,6 +58,5 @@ func main() {
 
 	<-done
 	close(done)
-	log.Print("Just waiting")
 	p.Quit()
 }

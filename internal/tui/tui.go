@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"log"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -39,6 +38,5 @@ func (m model) View() string {
 	if !m.ready {
 		return "Initializing"
 	} 
-	log.Print("View updated")
 	return strings.Join(m.lines, "\n")
 }

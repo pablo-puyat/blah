@@ -26,7 +26,6 @@ func (fw *FileWatcher) Watch(writer chan<- string) error {
 	}
 
 	go func() {
-		log.Print("In go routine")
 		defer file.Close()
 		var fileMark int64
 		firstRun := true
@@ -44,11 +43,10 @@ func (fw *FileWatcher) Watch(writer chan<- string) error {
 					scanner := bufio.NewScanner(file)
 					for scanner.Scan() {
 						writer <- scanner.Text()
-						log.Print("Wrote message")
 					}
 				}
 				fileMark = info.Size()
-				time.Sleep(time.Second)
+				time.Sleep(6 * time.Millisecond)
 			}
 	}()
 

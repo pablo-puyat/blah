@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	tea "github.com/charmbracelet/bubbletea"
-	"log"
 	"strings"
 	"testing"
 	"time"
@@ -13,11 +12,6 @@ import (
 func TestLogMessagesAppearInOutput(t *testing.T) {
 	m := New()
 	p := tea.NewProgram(m)
-	f, err := tea.LogToFile("debug.txt", "debug")
-	if err != nil {
-		log.Fatal("Unable to open log file", err)
-	}
-	defer f.Close()
 	go func() {
 		if _, err := p.Run(); err != nil {
 			t.Errorf("unexpected error: %v", err)
