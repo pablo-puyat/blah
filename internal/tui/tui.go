@@ -13,7 +13,7 @@ type model struct {
 }
 
 func New() *model {
-	return &model{ready: false}
+	return &model{ready: false, lines: []string{"Watching"}}
 }
 func (m model) Init() tea.Cmd {
 	return nil
@@ -27,7 +27,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ready = true
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c":
+		case "ctrl+c", "q":
 			return m, tea.Quit
 		}
 	}
