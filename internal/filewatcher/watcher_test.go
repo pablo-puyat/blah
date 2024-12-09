@@ -1,6 +1,7 @@
 package filewatcher
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -8,61 +9,53 @@ import (
 
 func TestWatcherOnlyReadsNewLines(t *testing.T) {
 	// Create temp file with initial content that should be ignored
+	println("starting tgest")
 	tmpfile, err := os.CreateTemp("", "test*.log")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
 	defer os.Remove(tmpfile.Name())
+	defer tmpfile.Close()
 
 	// Write initial content that should be ignored by watcher
 	initialContent := "old line 1\nold line 2\n"
-	if err := os.WriteFile(tmpfile.Name(), []byte(initialContent), 0644); err != nil {
+	if _, err := tmpfile.WriteString(initialContent); err != nil {
 		t.Fatalf("Failed to write initial content: %v", err)
 	}
-
+	info, err := os.Stat(tmpfile.Name())
+	if err != nil {
+		t.Logf("Error getting file info: %v", err)
+	} else {
+		t.Logf("File size: %d", info.Size())
+	}
 	// Start the watcher
 	fw, err := NewFileWatcher(tmpfile.Name())
 	if err != nil {
-		
+		t.Fatalf("Error instantiating file watcher")
 	}
-	done := make(chan bool)
-	go fw.Watch(done)
-	defer close(done)
+	lines := make(chan string, 10)
 
+	if err := fw.Watch(lines); err != nil {
+		t.Fatalf("Unable to open file to watch")
+	}
 	// Give the watcher a moment to start up
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(300 * time.Millisecond)
 
-	// Append new entries to the file
-	f, err := os.OpenFile(tmpfile.Name(), os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		t.Fatalf("Failed to open file for appending: %v", err)
-	}
-
-	newEntries := []string{"new line 1", "new line 2"}
-	for _, entry := range newEntries {
-		if _, err := f.WriteString(entry + "\n"); err != nil {
+	for i := 0; i < 5; i++ {
+		if _, err := tmpfile.WriteString(fmt.Sprintf("test line %d\n", i)); err != nil {
 			t.Fatalf("Failed to append to file: %v", err)
 		}
 	}
-	f.Close()
+	done := make(chan bool)
 
-	// Verify only new lines are detected
-	for i, exp := range newEntries {
-		select {
-		case line := <-fw.Lines:
-			if line != exp {
-				t.Errorf("Line %d: expected %q, got %q", i+1, exp, line)
+	go func() {
+		for i := 0; i < 5; i++ {
+			line := <-lines
+			if line != fmt.Sprintf("test line %d", i) {
+				t.Errorf("Expected: %s\nReceived: ", line)
 			}
-		case <-time.After(time.Second):
-			t.Fatalf("Timeout waiting for line %d", i+1)
 		}
-	}
-
-	// Verify no old content was sent
-	select {
-	case line := <-fw.Lines:
-		t.Errorf("Unexpected line received: %q (watcher should ignore existing content)", line)
-	case <-time.After(100 * time.Millisecond):
-		// This is good - we expect no more lines
-	}
+		done <- true
+	}()
+	<-done
 }

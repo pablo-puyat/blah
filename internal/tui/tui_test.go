@@ -1,26 +1,41 @@
 package tui
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	tea "github.com/charmbracelet/bubbletea"
+	"log"
 	"strings"
 	"testing"
 	"time"
-	"github.com/pablo-puyat/blahblah/internal/testutil"
 )
 
-// Test function
-func TestComponent(t *testing.T) {
-	// Initialize your model
-	m := NewModel()
+func TestLogMessagesAppearInOutput(t *testing.T) {
+	m := New()
+	p := tea.NewProgram(m)
+	f, err := tea.LogToFile("debug.txt", "debug")
+	if err != nil {
+		log.Fatal("Unable to open log file", err)
+	}
+	defer f.Close()
+	go func() {
+		if _, err := p.Run(); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	}()
+	if !strings.Contains(m.View(), "Initializing") {
+		t.Error("output should contain Initializing", m.View())
+	}
 
-	// Simulate initial window size message and type assert the result
+	time.Sleep(100 * time.Millisecond)
+
 	updatedModel, _ := m.Update(tea.WindowSizeMsg{
 		Width:  80,
 		Height: 24,
 	})
 
 	// Type assert the interface back to our concrete type
-	m, ok := updatedModel.(Model)
+	m, ok := updatedModel.(*model)
 	if !ok {
 		t.Fatal("Could not type assert model")
 	}
@@ -28,52 +43,27 @@ func TestComponent(t *testing.T) {
 	if !m.ready {
 		t.Error("Component should be ready after receiving WindowSizeMsg")
 	}
+	for i := 0; i < 4; i++ {
+		rm , err := generateRandomString(20)
+		if err != nil {
+			t.Fatal("unable to generate random strings")
+		}
 
-	if !strings.Contains(m.View(), "watching") {
-		t.Error("Viewport should contain watching")
+		p.Send(rm)
+		time.Sleep(300 * time.Millisecond)
+		if !strings.Contains(m.View(), rm) {
+			t.Error("output should contain "+ rm +"\n", m.View())
+		}
+
 	}
+	p.Quit()
 }
 
-func TestLogMessagesAppearInOutput(t *testing.T) {
-	m := NewModel()
-	p := tea.NewProgram(m)
-
-	go func() {
-		if _, err := p.Run(); err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
-	}()
-
-	updatedModel, _ := m.Update(tea.WindowSizeMsg{
-		Width:  80,
-		Height: 24,
-	})
-	m, ok := updatedModel.(Model)
-	if !ok {
-		t.Fatal("Could not type assert model")
+func generateRandomString(length int) (string, error) {
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
 	}
-
-	time.Sleep(300 * time.Millisecond)
-
-	if !m.ready {
-		t.Error("Component should be ready after receiving WindowSizeMsg")
-	}
-
-/*
-	updatedModel, _ = m.Update("sdfsdfsdf")
-	m, ok = updatedModel.(Model)
-	if !ok {
-		t.Fatal("Could not type assert model")
-	}
-*/
-	l := "test log message"
-
-	p.Send(l)
-	time.Sleep(300 * time.Millisecond)
-	if !strings.Contains(m.View(), l) {
-		t.Error("output should contain " + l + "\n")
-		testutil.Logger.Printf("TUI test")
-	}
-	testutil.Logger.Printf("end")
-	p.Quit()
+	return base64.URLEncoding.EncodeToString(bytes)[:length], nil
 }

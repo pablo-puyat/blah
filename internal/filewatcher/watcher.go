@@ -1,62 +1,56 @@
 package filewatcher
 
 import (
-    "bufio"
-    "fmt"
-    "os"
-    "time"
+	"bufio"
+	"os"
+	"time"
+
+	"github.com/charmbracelet/log"
 )
 
 type FileWatcher struct {
-    filename     string
-    Lines        chan string
-    file         *os.File
-    size         int64
+	filename string
+	writer   chan string
 }
 
 func NewFileWatcher(filename string) (*FileWatcher, error) {
-    file, err := os.Open(filename)
-    if err !=nil {
-        return nil, fmt.Errorf("error opening file: %v", err)
-    }
-
-    info, err := file.Stat()
-    if err != nil {
-        file.Close()
-        return nil, fmt.Errorf("error getting file size")
-    }
-    return &FileWatcher{
-        filename:     filename,
-        file:         file,
-        Lines:        make(chan string),
-        size: info.Size(),
-    }, nil
+	return &FileWatcher{
+		filename: filename,
+	}, nil
 }
 
-func (fw *FileWatcher) Watch(done chan bool) error {
-    defer fw.file.Close()
-    defer close(fw.Lines)
+func (fw *FileWatcher) Watch(writer chan<- string) error {
+	file, err := os.Open(fw.filename)
+	if err != nil {
+		return err
+	}
 
-    for {
-        info, err := fw.file.Stat()
-        if err != nil {
-            return fmt.Errorf("error getting file size: %v", err)
-        }
-        if info.Size() > fw.size {
-            for {
-                select {
-                case <-done:
-                    return nil
-                default:
-                    scanner := bufio.NewScanner(fw.file)
-                    fw.file.Seek(fw.size, 0)
-                    for scanner.Scan() {
-                        fw.Lines <- scanner.Text()
-                    }
-                    fw.file.Close()
-                    time.Sleep(2 * time.Second)
-                }
-            }
-        }
-    }
+	go func() {
+		log.Print("In go routine")
+		defer file.Close()
+		var fileMark int64
+		firstRun := true
+		for {
+				info, err := file.Stat()
+				if err != nil {
+					log.Fatalf("error getting file size: %v", err)
+				}
+				if firstRun {
+					fileMark = info.Size()
+					firstRun = false
+				}
+				if fileMark < info.Size() {
+					file.Seek(fileMark, 0)
+					scanner := bufio.NewScanner(file)
+					for scanner.Scan() {
+						writer <- scanner.Text()
+						log.Print("Wrote message")
+					}
+				}
+				fileMark = info.Size()
+				time.Sleep(time.Second)
+			}
+	}()
+
+	return nil
 }
