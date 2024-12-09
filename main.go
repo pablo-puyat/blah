@@ -6,8 +6,8 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/pablo-puyat/blahblah/internal/filewatcher"
-	"github.com/pablo-puyat/blahblah/internal/tui"
+	"blah/internal/filewatcher"
+	"blah/internal/tui"
 )
 
 func main() {

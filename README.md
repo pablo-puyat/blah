@@ -1,4 +1,4 @@
-# blahblah
+# blah
 
 a log viewer to ease web development
 
@@ -173,20 +173,20 @@ The system must handle:
 ### Basic Usage
 
 ```bash
-blahblah /path/to/laravel.log
+blah /path/to/laravel.log
 ```
 
 ### Multiple Sources
 
 ```bash
-blahblah /path/to/laravel.log /path/to/access.log
+blah /path/to/laravel.log /path/to/access.log
 ```
 
 ### With Frontend Logging
 
 ```javascript
 // Frontend integration
-blahblah.connect({
+blah.connect({
     port: 8080,
     captureErrors: true
 });
