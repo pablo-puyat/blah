@@ -5,6 +5,7 @@ go 1.23.3
 require (
 	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/charmbracelet/log v0.4.0
+	github.com/davecgh/go-spew v1.1.1
 )
 
 require (
