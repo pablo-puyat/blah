@@ -6,8 +6,8 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"blah/internal/watcher"
-	"blah/internal/tui"
+	"blah/pkg/watcher"
+	"blah/pkg/ui"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 	done := make(chan bool)
 	lines := make(chan *watcher.Line, 50)
 
-	p := tea.NewProgram(tui.New(), tea.WithAltScreen())
+	p := tea.NewProgram(ui.New(), tea.WithAltScreen())
 	f, err := tea.LogToFile("debug.log", "debug")
 	if err != nil {
 		log.Printf("Unable to open log file: %v", err)

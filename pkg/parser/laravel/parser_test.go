@@ -6,7 +6,7 @@ import (
     "time"
 
     "github.com/davecgh/go-spew/spew"
-    "blah/internal/parser"
+    "blah/pkg/parser"
 )
 
 func TestParser_Parse(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"blah/internal/parser"
+	"blah/pkg/parser"
 )
 
 type Parser struct {
