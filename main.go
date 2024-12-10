@@ -23,7 +23,7 @@ func main() {
 	}
 
 	done := make(chan bool)
-	lines := make(chan string, 50)
+	lines := make(chan *filewatcher.Line, 50)
 
 	p := tea.NewProgram(tui.New(), tea.WithAltScreen())
 	f, err := tea.LogToFile("debug.log", "debug")
