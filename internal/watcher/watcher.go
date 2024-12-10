@@ -1,4 +1,4 @@
-package filewatcher
+package watcher
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/log"
 )
 
-type FileWatcher struct {
+type Watcher struct {
 	filename string
 	writer   chan string
 }
@@ -19,13 +19,13 @@ type Line struct {
 	Timestamp time.Time
 }
 
-func NewFileWatcher(filename string) (*FileWatcher, error) {
-	return &FileWatcher{
+func New(filename string) (*Watcher, error) {
+	return &Watcher{
 		filename: filename,
 	}, nil
 }
 
-func (fw *FileWatcher) Watch(writer chan<- *Line) error {
+func (fw *Watcher) Watch(writer chan<- *Line) error {
 	file, err := os.Open(fw.filename)
 	if err != nil {
 		return err

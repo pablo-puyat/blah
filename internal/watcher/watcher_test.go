@@ -1,4 +1,4 @@
-package filewatcher
+package watcher
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ func TestWatcherOnlyReadsNewLines(t *testing.T) {
 		t.Logf("File size: %d", info.Size())
 	}
 
-	fw, err := NewFileWatcher(tmpfile.Name())
+	fw, err := New(tmpfile.Name())
 	if err != nil {
 		t.Fatalf("Error instantiating file watcher")
 	}

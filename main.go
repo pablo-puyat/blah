@@ -6,7 +6,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"blah/internal/filewatcher"
+	"blah/internal/watcher"
 	"blah/internal/tui"
 )
 
@@ -16,14 +16,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	fw, err := filewatcher.NewFileWatcher(os.Args[1])
+	fw, err := watcher.New(os.Args[1])
 	if err != nil {
 		fmt.Printf("Error initializing file watcher: %v\n", err)
 		os.Exit(1)
 	}
 
 	done := make(chan bool)
-	lines := make(chan *filewatcher.Line, 50)
+	lines := make(chan *watcher.Line, 50)
 
 	p := tea.NewProgram(tui.New(), tea.WithAltScreen())
 	f, err := tea.LogToFile("debug.log", "debug")
